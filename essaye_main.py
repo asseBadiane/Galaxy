@@ -8,13 +8,14 @@ class MainWidget(Widget):
     perspective_point_x = NumericProperty(0)
     perspective_point_y = NumericProperty(0)
 
-    V_NB_LINES = 10 # numbers the lines
-    V_LINES_SPACING = .25 # perrcentage the screen
+    V_NB_LINES = 7 # numbers the lines
+    V_LINES_SPACING = .1 # perrcentage the screen
     Vertical_Lines = [] # list the lines
 
-    H_NB_LINES = 15 
-    H_LINES_SPACING = .25 
-    horizontal_Lines = [] 
+    lines = None
+    H_NB_LINES = 5
+    H_LINES_SPACING = .25
+    Horizontal_Lines = []
 
     def __init__(self, **kwargs):
         super(MainWidget, self).__init__(**kwargs)
@@ -22,8 +23,7 @@ class MainWidget(Widget):
         # self.perspective_y = self.height * 0.75
         # print(f"Perspective X: {self.width}, Perspective Y: {self.height}")
         self.init_vertical_lines()
-        self.init_horizontal_lines()
-       
+        # self.init_horizontal_lines()
         
     def on_parent(self, widget, parent):
         # print(f"Perspective X: {self.width}, Perspective Y: {self.height}")
@@ -31,18 +31,18 @@ class MainWidget(Widget):
 
     def on_size(self, *args):
         self.update_vertical_lines()
-        self.update_horizontal_lines()
+        # self.update_horizontal_lines()
         # print("on_size")
         # print(f"Perspective X: {self.perspective_point_x}, Perspective Y: {self.perspective_point_y}")
     
     def on_perspective_point_x(self, widget, value):
-        # print(f"Perspective X: {value}")
         pass
+        # self.update_vertical_lines()
+        # print(f"Perspective X: {value}")
 
     def on_perspective_point_y(self, widget, value):
-        # print(f"Perspective Y: {value}")
         pass
-    
+        # # print(f"Perspective Y: {value}")
 
     def init_vertical_lines(self):
         with self.canvas:
@@ -50,12 +50,19 @@ class MainWidget(Widget):
             # self.lines = Line(points=[100, 0, 100, 100])
             for i in range(0, self.V_NB_LINES):
                 self.Vertical_Lines.append(Line())
-
+    
+    def init_horizontal_lines(self):
+        with self.canvas:
+            Color(1, 1, 1)
+            # self.lines = Line(points=(self.width, 100, self.width, 100))
+            for i in range(0, self.V_NB_LINES):
+                self.Horizontal_Lines.append(Line())
+    
     def update_vertical_lines(self):
         # self.lines.points = [self.perspective_point_x, 0, self.perspective_point_x, self.height]
-        central_line_x = self.width / 2 
+        central_line_x = self.width / 2
         spacing = self.V_LINES_SPACING * self.width
-        offset = - int(self.V_NB_LINES / 2) + 0.5
+        offset = - int(self.V_NB_LINES / 2)
         for i in range(0, self.V_NB_LINES):
             lines_x = int(central_line_x + offset * spacing)
             # x1 = int(central_line_x + offset * spacing)
@@ -68,12 +75,13 @@ class MainWidget(Widget):
             # print(f"{i}- X1: {x1}, Y1: {y1}, X2:{x2}, Y2: {y2}")
             offset += 1
 
+
     def transform(self, x, y):
         # return self.transform_2D(x, y)
         return self.transform_perspective(x, y)
     
     def transform_2D(self, x, y):
-        return int(x), int(y)
+        return x, y
     
     def transform_perspective(self, x, y):
         tr_y = self.perspective_point_y * y / self.height
@@ -86,29 +94,29 @@ class MainWidget(Widget):
 
         tr_x = self.perspective_point_x + offset
 
-        return int(tr_x), int(tr_y)
+        return tr_x, tr_y
 
-    def init_horizontal_lines(self):
-        with self.canvas:
-            Color(1, 1, 1)
-            for i in range(0, self.H_NB_LINES):
-                self.horizontal_Lines.append(Line())
 
     def update_horizontal_lines(self):
-        
-        central_line_x = self.width / 2 
+        central_line_x = self.width / 2
         spacing = self.V_LINES_SPACING * self.width
-        offset = - int(self.V_NB_LINES / 2) + 0.5
+        offset = - int(self.V_NB_LINES / 2)
+        # x1 = -int(central_line_x + offset * spacing)
+        # x2 = -int(central_line_x - offset * spacing)
+        # self.lines.points = [-x1, self.height/2, -x2, self.height/2]
 
-        xmin = central_line_x - offset * spacing
-        xmax = central_line_x + offset * spacing
+        central_line_y = self.height / 2
         spacing_y = self.H_LINES_SPACING * self.height
+        offset_y = - int(self.H_NB_LINES / 2)
         for i in range(0, self.H_NB_LINES):
-            lines_y = i * spacing_y
-            x1, y1 = self.transform(xmin, lines_y)
-            x2, y2 = self.transform(xmax, lines_y)
-            self.horizontal_Lines[i].points = [x1, y1, x2, y2]
-      
+            x1 =  -int(central_line_x + offset * spacing)
+            y1 = int(central_line_y + offset_y * spacing_y)
+            x2 = -int(central_line_x - offset * spacing)
+            y2 = y1
+
+            self.Horizontal_Lines[i].points = [-x1, y1, -x2, y2]
+            offset_y += 1
+
 
 class GalaxyApp(App):
     pass
