@@ -34,9 +34,11 @@ class MainWidget(Widget):
     current_offset_x = 0
     current_speed_x = 0
 
-    tiles = None
-    tile_x = 0
-    tile_y = 4
+    NB_TILES = 4
+    tiles = [] # list the tiles 
+    tiles_coordinates = [] # list the coordinates
+    
+
     current_y_loop = 0
 
     def __init__(self, **kwargs):
@@ -50,8 +52,7 @@ class MainWidget(Widget):
         self.init_horizontal_lines()
         Clock.schedule_interval(self.update, 1.0/60.0)
         self.init_tiles()
-
- 
+        self.generates_tiles_coordinates() 
 
     def is_desktop(self):
         if platform in ('linux', 'win', 'macosx'):
@@ -61,8 +62,12 @@ class MainWidget(Widget):
         
     def init_tiles(self):
         with self.canvas:
-            Color(1, 1, 1)
-            self.tiles = Quad()
+            for i in range(0, self.NB_TILES):
+                self.tiles.append(Quad())
+
+    def generates_tiles_coordinates(self):
+        for i in range(0, self.NB_TILES):
+            self.tiles_coordinates.append((0, i))
 
     def init_vertical_lines(self):
         with self.canvas:
@@ -85,24 +90,28 @@ class MainWidget(Widget):
         line_y =  index * spacing - self.current_offset_y
         return int(line_y)
 
-    def get_tile_coordinates(self, tile_x, tile_y):
+    def get_tiles_coordinates(self, tile_x, tile_y):
         tile_y = tile_y - self.current_y_loop
         x = self.get_line_x_from_index(tile_x)
         y = self.get_line_y_from_index(tile_y)
         return x, y
     
     def update_tiles(self):
-        xmin, ymin = self.get_tile_coordinates(self.tile_x, self.tile_y)
-        xmax, ymax = self.get_tile_coordinates(self.tile_x + 1, self.tile_y + 1)
-        # 2      3
-        #
-        # 1      4
-        x1, y1 = self.transform(xmin, ymin)
-        x2, y2 = self.transform(xmin, ymax)
-        x3, y3 = self.transform(xmax, ymax)
-        x4, y4 = self.transform(xmax, ymin)
+        for i in range(0, self.NB_TILES):
+            tile = self.tiles[i]
+            tiles_coordinates = self.tiles_coordinates[i]
 
-        self.tiles.points = [x1, y1, x2, y2, x3, y3, x4, y4]
+            xmin, ymin = self.get_tiles_coordinates(tiles_coordinates[0], tiles_coordinates[1])
+            xmax, ymax = self.get_tiles_coordinates(tiles_coordinates[0] + 1, tiles_coordinates[1] + 1)
+            # 2      3
+            #
+            # 1      4
+            x1, y1 = self.transform(xmin, ymin)
+            x2, y2 = self.transform(xmin, ymax)
+            x3, y3 = self.transform(xmax, ymax)
+            x4, y4 = self.transform(xmax, ymin)
+
+            tile.points = [x1, y1, x2, y2, x3, y3, x4, y4]
 
 
     def update_vertical_lines(self):
