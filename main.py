@@ -1,3 +1,8 @@
+
+from kivy.config import Config
+Config.set('graphics', 'width', '900')
+Config.set('graphics', 'height', '400')
+
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty
@@ -17,8 +22,12 @@ class MainWidget(Widget):
     H_LINES_SPACING = .1 
     horizontal_Lines = [] 
 
-    SPEED = 4
+    SPEED_y = 4
     current_offset_y = 0
+
+    SPEED_x = 3
+    current_offset_x = 0
+
 
     def __init__(self, **kwargs):
         super(MainWidget, self).__init__(**kwargs)
@@ -63,15 +72,12 @@ class MainWidget(Widget):
         spacing = self.V_LINES_SPACING * self.width
         offset = - int(self.V_NB_LINES / 2) + 0.5
         for i in range(0, self.V_NB_LINES):
-            lines_x = int(central_line_x + offset * spacing)
-            # x1 = int(central_line_x + offset * spacing)
-            # y1 = 0
-            # x2 = x1
-            # y2 = self.height
+            lines_x = int(central_line_x + offset * spacing + self.current_offset_x) 
+      
             x1, y1 = self.transform(lines_x, 0)
             x2, y2 = self.transform(lines_x, self.height)
             self.Vertical_Lines[i].points = [x1, y1, x2, y2]
-            # print(f"{i}- X1: {x1}, Y1: {y1}, X2:{x2}, Y2: {y2}")
+         
             offset += 1
 
     def transform(self, x, y):
@@ -111,8 +117,8 @@ class MainWidget(Widget):
         spacing = self.V_LINES_SPACING * self.width
         offset = - int(self.V_NB_LINES / 2) + 0.5
 
-        xmin = central_line_x - offset * spacing
-        xmax = central_line_x + offset * spacing
+        xmin = central_line_x - offset * spacing + self.current_offset_x
+        xmax = central_line_x + offset * spacing + self.current_offset_x
         spacing_y = self.H_LINES_SPACING * self.height
         for i in range(0, self.H_NB_LINES):
             lines_y = i * spacing_y - self.current_offset_y
@@ -121,14 +127,17 @@ class MainWidget(Widget):
             self.horizontal_Lines[i].points = [x1, y1, x2, y2]
 
     def update(self, dt):
+        time_factor = dt * 60
         self.update_vertical_lines()
         self.update_horizontal_lines()
-        self.current_offset_y += self.SPEED
+        self.current_offset_y += self.SPEED_y * time_factor
       
         spacing_y = self.H_LINES_SPACING * self.height
         if self.current_offset_y >= spacing_y:
             self.current_offset_y -= spacing_y
 
+        self.current_offset_x += self.SPEED_x * time_factor
+     
 class GalaxyApp(App):
     pass
 
