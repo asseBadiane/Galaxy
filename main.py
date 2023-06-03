@@ -13,6 +13,8 @@ from kivy.graphics.vertex_instructions import Line
 from kivy.properties import Clock
 
 class MainWidget(Widget):
+    from transforms import transform, transform_2D, transform_perspective
+    from users_actions import keyboard_closed, on_keyboard_down, on_keyboard_up, on_touch_down, on_touch_up
     perspective_point_x = NumericProperty(0)
     perspective_point_y = NumericProperty(0)
 
@@ -34,9 +36,7 @@ class MainWidget(Widget):
 
     def __init__(self, **kwargs):
         super(MainWidget, self).__init__(**kwargs)
-        # self.perspective_x = self.width / 2
-        # self.perspective_y = self.height * 0.75
-        # print(f"Perspective X: {self.width}, Perspective Y: {self.height}")
+
         if self.is_desktop():
             self._keyboard = Window.request_keyboard(self.keyboard_closed, self)
             self._keyboard.bind(on_key_down=self.on_keyboard_down)
@@ -45,37 +45,13 @@ class MainWidget(Widget):
         self.init_horizontal_lines()
         Clock.schedule_interval(self.update, 1.0/60.0)
 
-    def keyboard_closed(self):
-        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
-        self._keyboard = None
-
+ 
 
     def is_desktop(self):
         if platform in ('linux', 'win', 'macosx'):
             return True
         else:
             return False
-    
-        
-    def on_parent(self, widget, parent):
-        # print(f"Perspective X: {self.width}, Perspective Y: {self.height}")
-        pass
-
-    def on_size(self, *args):
-        pass
-        # self.update_vertical_lines()
-        # self.update_horizontal_lines()
-        # print("on_size")
-        # print(f"Perspective X: {self.perspective_point_x}, Perspective Y: {self.perspective_point_y}")
-    
-    def on_perspective_point_x(self, widget, value):
-        # print(f"Perspective X: {value}")
-        pass
-
-    def on_perspective_point_y(self, widget, value):
-        # print(f"Perspective Y: {value}")
-        pass
-    
 
     def init_vertical_lines(self):
         with self.canvas:
@@ -98,30 +74,6 @@ class MainWidget(Widget):
          
             offset += 1
 
-    def transform(self, x, y):
-        # return self.transform_2D(x, y)
-        return self.transform_perspective(x, y)
-    
-    def transform_2D(self, x, y):
-        return int(x), int(y)
-    
-    def transform_perspective(self, x, y):
-        lin_y = self.perspective_point_y * y / self.height
-        if lin_y > self.perspective_point_y:
-            lin_y = self.perspective_point_y
-        
-        diff_y = self.perspective_point_y - lin_y
-        diff_x = x - self.perspective_point_x
-        
-        factor_y = diff_y / self.perspective_point_y
-        factor_y = pow(factor_y, 4)
-
-        offset_x = diff_x * factor_y
-
-        tr_x = self.perspective_point_x + offset_x
-        tr_y = self.perspective_point_y - factor_y * self.perspective_point_y
-
-        return int(tr_x), int(tr_y)
 
     def init_horizontal_lines(self):
         with self.canvas:
@@ -130,7 +82,6 @@ class MainWidget(Widget):
                 self.horizontal_Lines.append(Line())
 
     def update_horizontal_lines(self):
-        
         central_line_x = self.width / 2 
         spacing = self.V_LINES_SPACING * self.width
         offset = - int(self.V_NB_LINES / 2) + 0.5
@@ -144,29 +95,7 @@ class MainWidget(Widget):
             x2, y2 = self.transform(xmax, lines_y)
             self.horizontal_Lines[i].points = [x1, y1, x2, y2]
 
-    def on_touch_down(self, touch):
-        if touch.x < self.width / 2:
 
-            self.current_speed_x = self.SPEED_x
-        else:
-            
-            self.current_speed_x = -self.SPEED_x
-
-    def on_touch_up(self, touch):
-        self.current_speed_x = 0
-
-    def on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        if keycode.x < self.width / 2:
-            # print("left")
-            self.current_speed_x = self.SPEED_x
-        else:
-            # print("right")
-            self.current_speed_x = -self.SPEED_x
-        return True
-
-    def on_keyboard_up(self, keyboard, keycode):
-        self.current_speed_x = 0
-        return True
 
     def update(self, dt):
         time_factor = dt * 60
