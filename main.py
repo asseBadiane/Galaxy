@@ -27,6 +27,7 @@ class MainWidget(Widget):
 
     SPEED_x = 3
     current_offset_x = 0
+    current_speed_x = 0
 
 
     def __init__(self, **kwargs):
@@ -126,6 +127,17 @@ class MainWidget(Widget):
             x2, y2 = self.transform(xmax, lines_y)
             self.horizontal_Lines[i].points = [x1, y1, x2, y2]
 
+    def on_touch_down(self, touch):
+        if touch.x < self.width / 2:
+            print("left")
+            self.current_speed_x = self.SPEED_x
+        else:
+            print("right")
+            self.current_speed_x = -self.SPEED_x
+
+    def on_touch_up(self, touch):
+        self.current_speed_x = 0
+
     def update(self, dt):
         time_factor = dt * 60
         self.update_vertical_lines()
@@ -136,7 +148,7 @@ class MainWidget(Widget):
         if self.current_offset_y >= spacing_y:
             self.current_offset_y -= spacing_y
 
-        self.current_offset_x += self.SPEED_x * time_factor
+        self.current_offset_x += self.current_speed_x * time_factor
      
 class GalaxyApp(App):
     pass
