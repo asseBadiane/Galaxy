@@ -1,7 +1,7 @@
 
 from kivy.config import Config
 Config.set('graphics', 'width', '900')
-Config.set('graphics', 'height', '400')
+Config.set('graphics', 'height', '500')
 
 from kivy.core.window import Window
 import platform
@@ -11,6 +11,7 @@ from kivy.properties import NumericProperty
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Line
 from kivy.properties import Clock
+from kivy.graphics.vertex_instructions import Quad
 
 class MainWidget(Widget):
     from transforms import transform, transform_2D, transform_perspective
@@ -33,6 +34,9 @@ class MainWidget(Widget):
     current_offset_x = 0
     current_speed_x = 0
 
+    tiles = []
+    tile_x = 0
+    tile_y = 0
 
     def __init__(self, **kwargs):
         super(MainWidget, self).__init__(**kwargs)
@@ -44,6 +48,7 @@ class MainWidget(Widget):
         self.init_vertical_lines()
         self.init_horizontal_lines()
         Clock.schedule_interval(self.update, 1.0/60.0)
+        self.init_tiles()
 
  
 
@@ -52,6 +57,11 @@ class MainWidget(Widget):
             return True
         else:
             return False
+        
+    def init_tiles(self):
+        with self.canvas:
+            Color(1, 1, 1)
+            self.tiles = Quad()
 
     def init_vertical_lines(self):
         with self.canvas:
@@ -66,6 +76,32 @@ class MainWidget(Widget):
         offset = index - 0.5
         line_x = central_line_x + offset * spacing + self.current_offset_x
         return int(line_x)
+    
+
+    def get_line_y_from_index(self, index):
+        spacing = self.H_LINES_SPACING * self.height
+
+        line_y =  index * spacing - self.current_offset_y
+        return int(line_y)
+
+    def get_tile_coordinates(self, tile_x, tile_y):
+        x = self.get_line_x_from_index(tile_x)
+        y = self.get_line_y_from_index(tile_y)
+        return x, y
+    
+    def update_tiles(self):
+        xmin, ymin = self.get_tile_coordinates(self.tile_x, self.tile_y)
+        xmax, ymax = self.get_tile_coordinates(self.tile_x + 1, self.tile_y + 1)
+        # 2      3
+        #
+        # 1      4
+        x1, y1 = self.transform(xmin, ymin)
+        x2, y2 = self.transform(xmin, ymax)
+        x3, y3 = self.transform(xmax, ymax)
+        x4, y4 = self.transform(xmax, ymin)
+
+        self.tiles.points = [x1, y1, x2, y2, x3, y3, x4, y4]
+
 
     def update_vertical_lines(self):
         # self.lines.points = [self.perspective_point_x, 0, self.perspective_point_x, self.height]
@@ -81,18 +117,11 @@ class MainWidget(Widget):
             self.Vertical_Lines[i].points = [x1, y1, x2, y2]
 
 
-
     def init_horizontal_lines(self):
         with self.canvas:
             Color(1, 1, 1)
             for i in range(0, self.H_NB_LINES):
                 self.horizontal_Lines.append(Line())
-
-    def get_line_y_from_index(self, index):
-        spacing = self.H_LINES_SPACING * self.height
-
-        line_y =  index * spacing - self.current_offset_y
-        return int(line_y)
 
     def update_horizontal_lines(self):
         # central_line_x = self.width / 2 
@@ -116,6 +145,7 @@ class MainWidget(Widget):
         time_factor = dt * 60
         self.update_vertical_lines()
         self.update_horizontal_lines()
+        self.update_tiles()
         # self.current_offset_y += self.SPEED_y * time_factor
       
         spacing_y = self.H_LINES_SPACING * self.height
