@@ -12,8 +12,8 @@ from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Line, Quad, Triangle
 from kivy.properties import Clock
 
-
 import random
+
 
 class MainWidget(Widget):
     from transforms import transform, transform_2D, transform_perspective
@@ -21,33 +21,33 @@ class MainWidget(Widget):
     perspective_point_x = NumericProperty(0)
     perspective_point_y = NumericProperty(0)
 
-    V_NB_LINES = 8 # numbers the lines
-    V_LINES_SPACING = .2 # perrcentage the screen
-    Vertical_Lines = [] # list the lines
+    V_NB_LINES = 8 # numbers the lines vertical
+    V_LINES_SPACING = .4 # spaces between vertical lines
+    Vertical_Lines = [] # list the lines vertical
 
-    H_NB_LINES = 15 
-    H_LINES_SPACING = .1 
-    horizontal_Lines = [] 
+    H_NB_LINES = 8  # numbers the lines horizontal
+    H_LINES_SPACING = .15  # spaces between horizontal lines
+    horizontal_Lines = [] # list the lines horizontal
 
-    SPEED_y = .4
-    current_offset_y = 0
+    SPEED_y = .4 # ship's speed vertically (y)
+    current_offset_y = 0 # current offset y
 
-    SPEED_x = .5
-    current_offset_x = 0
-    current_speed_x = 0
+    SPEED_x = 2.5 # ship's speed horizontally (x)
+    current_offset_x = 0 # current offset x
+    current_speed_x = 0 # current speed x
 
-    NB_TILES = 8
+    NB_TILES = 8 # numbers the tiles
     tiles = [] # list the tiles 
-    tiles_coordinates = [] # list the coordinates
+    tiles_coordinates = [] # list the tiles coordinates
     
-    current_y_loop = 0
+    current_y_loop = 0 # current y loop
 
-    SHIP_WIDTH = .1
-    SHIP_HEIGHT = 0.035
-    SHIP_BASE_Y = 0.04
-    SHIP = None
+    SHIP_WIDTH = .1 # width of the ship
+    SHIP_HEIGHT = 0.035 # height of the ship
+    SHIP_BASE_Y = 0.04 # base y of the ship
+    SHIP = None # The ship
+    ships_coordinates = [(0, 0), (0, 0), (0, 0)] # The coordinates of the 3 corners of the ship
 
-    ships_coordinates = [(0, 0), (0, 0), (0, 0)]
 
     def __init__(self, **kwargs):
         super(MainWidget, self).__init__(**kwargs)
@@ -55,7 +55,7 @@ class MainWidget(Widget):
         if self.is_desktop():
             self._keyboard = Window.request_keyboard(self.keyboard_closed, self)
             self._keyboard.bind(on_key_down=self.on_keyboard_down)
-            self._keyboard.bind(on_key_down=self.on_keyboard_up)
+            self._keyboard.bind(on_key_up=self.on_keyboard_up)
         self.init_vertical_lines()
         self.init_horizontal_lines()
         
@@ -65,17 +65,20 @@ class MainWidget(Widget):
         self.generates_tiles_coordinates() 
         Clock.schedule_interval(self.update, 1.0/60.0)
 
+    # Check if the device is a desktop
     def is_desktop(self):
         if platform in ('linux', 'win', 'macosx'):
             return True
         else:
             return False
         
+    # Initialize the ship   
     def init_ship(self):
         with self.canvas:
             Color(0, 0, 0)
             self.SHIP = Triangle()
 
+    # Update the ship 
     def update_ship(self):
         center_x = self.width / 2
         base_y = self.SHIP_BASE_Y * self.height
@@ -92,7 +95,7 @@ class MainWidget(Widget):
 
         self.SHIP.points = [x1, y1, x2, y2, x3, y3]
 
-
+    # is the ship still on course
     def check_ship_collision(self):
         for i in range(0, len(self.tiles_coordinates)):
             ti_x, ti_y = self.tiles_coordinates[i]
@@ -101,7 +104,9 @@ class MainWidget(Widget):
             if self.check_ship_collision_with_tiles(ti_x, ti_y):
                 return True
         return False
+        
     
+    # If one of the 3 points of the ship is in the tiles
     def check_ship_collision_with_tiles(self, tile_x, tile_y):
         xmin, ymin = self.get_tiles_coordinates(tile_x, tile_y)
         xmax, ymax = self.get_tiles_coordinates(tile_x + 1, tile_y + 1)
@@ -113,31 +118,36 @@ class MainWidget(Widget):
             
         return False
         
+    # Initialize the tiles
     def init_tiles(self):
         with self.canvas:
             for i in range(0, self.NB_TILES):
                 self.tiles.append(Quad())
 
+    #  Initialize the 10 tiles cooordinates
     def pre_fill_tiles_coordinates(self):
         with self.canvas:
             for i in range(0, 10):
                 self.tiles_coordinates.append((0, i))
 
+    # Add, update and remove tiles coordinates
     def generates_tiles_coordinates(self):
         last_x = 0
         last_y = 0
+
+        # Delete tile coordinates, already off screen
         for i in range(len(self.tiles_coordinates) -1, -1, -1):
             if self.tiles_coordinates[i][1] < self.current_y_loop:
                 del self.tiles_coordinates[i]
 
+        # Add a new tile coordinates at the end
         # Ex: si le derniere element est 0.3, on fait 0.3 + 1 qui fait 0.4
         if len(self.tiles_coordinates) > 0:
             last_coordinates = self.tiles_coordinates[-1]
             last_x = last_coordinates[0]
             last_y = last_coordinates[1] + 1
-        
-     
-       
+
+        # Which side generates new left or right tile coordinates
         for i in range(len(self.tiles_coordinates), self.NB_TILES):
             r = random.randint(0, 2)
             #  0 --> en avant
@@ -145,6 +155,7 @@ class MainWidget(Widget):
             #  2 --> à gauche
             start_index = - int(self.V_NB_LINES / 2) + 1
             end_index = start_index + self.V_NB_LINES - 1
+         
             if last_x <= start_index:
                 r = 1
             if last_x >= end_index:
@@ -165,12 +176,8 @@ class MainWidget(Widget):
 
             last_y += 1
 
-    def init_vertical_lines(self):
-        with self.canvas:
-            Color(1, 1, 1)
-            for i in range(0, self.V_NB_LINES):
-                self.Vertical_Lines.append(Line())
-
+  
+    # get row of x from index
     def get_line_x_from_index(self, index):
         central_line_x = self.perspective_point_x
         spacing = self.V_LINES_SPACING * self.width
@@ -178,19 +185,20 @@ class MainWidget(Widget):
         line_x = central_line_x + offset * spacing + self.current_offset_x
         return int(line_x)
     
-
+    # get row of y from index
     def get_line_y_from_index(self, index):
         spacing = self.H_LINES_SPACING * self.height
-
         line_y =  index * spacing - self.current_offset_y
         return int(line_y)
 
+    # Get x and y coordinates
     def get_tiles_coordinates(self, tile_x, tile_y):
         tile_y = tile_y - self.current_y_loop
         x = self.get_line_x_from_index(tile_x)
         y = self.get_line_y_from_index(tile_y)
         return x, y
     
+    # Update tiles
     def update_tiles(self):
         for i in range(0, self.NB_TILES):
             tile = self.tiles[i]
@@ -208,7 +216,14 @@ class MainWidget(Widget):
 
             tile.points = [x1, y1, x2, y2, x3, y3, x4, y4]
 
+    # Create vertical lines
+    def init_vertical_lines(self):
+        with self.canvas:
+            Color(1, 1, 1)
+            for i in range(0, self.V_NB_LINES):
+                self.Vertical_Lines.append(Line())
 
+    # Update vertical lines
     def update_vertical_lines(self):
         # self.lines.points = [self.perspective_point_x, 0, self.perspective_point_x, self.height]
         # central_line_x = self.width / 2 
@@ -216,25 +231,27 @@ class MainWidget(Widget):
         # offset = - int(self.V_NB_LINES / 2) + 0.5
         start_index = - int(self.V_NB_LINES / 2) + 1
         for i in range(start_index, start_index + self.V_NB_LINES):
+        
             lines_x = self.get_line_x_from_index(i)
-      
+        
             x1, y1 = self.transform(lines_x, 0)
             x2, y2 = self.transform(lines_x, self.height)
             self.Vertical_Lines[i].points = [x1, y1, x2, y2]
 
-
+    # Create horizontal lines
     def init_horizontal_lines(self):
         with self.canvas:
             Color(1, 1, 1)
             for i in range(0, self.H_NB_LINES):
                 self.horizontal_Lines.append(Line())
 
+    # Update horizontal lines
     def update_horizontal_lines(self):
         # central_line_x = self.width / 2 
         # spacing = self.V_LINES_SPACING * self.width
         # offset = - int(self.V_NB_LINES / 2) + 0.5
-        start_index = - int(self.V_NB_LINES / 2) +1
-        end_index = start_index + self.V_NB_LINES - 1
+        start_index = - int(self.V_NB_LINES / 2) + 1 # here it is -3
+        end_index = start_index + self.V_NB_LINES - 1 # here it is 4
 
         xmin =  self.get_line_x_from_index(start_index)
         xmax = self.get_line_x_from_index(end_index)
@@ -246,7 +263,7 @@ class MainWidget(Widget):
             self.horizontal_Lines[i].points = [x1, y1, x2, y2]
 
 
-
+    # Updates the fontions
     def update(self, dt):
         time_factor = dt * 60
         self.update_vertical_lines()
