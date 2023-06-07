@@ -7,7 +7,7 @@ from kivy.core.window import Window
 import platform
 from kivy.app import App
 from kivy.uix.widget import Widget
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, ObjectProperty
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Line, Quad, Triangle
 from kivy.properties import Clock
@@ -20,6 +20,8 @@ Builder.load_file("menu.kv")
 class MainWidget(RelativeLayout):
     from transforms import transform, transform_2D, transform_perspective
     from users_actions import keyboard_closed, on_keyboard_down, on_keyboard_up, on_touch_down, on_touch_up
+
+    menu_widget = ObjectProperty()
     perspective_point_x = NumericProperty(0)
     perspective_point_y = NumericProperty(0)
 
@@ -31,10 +33,10 @@ class MainWidget(RelativeLayout):
     H_LINES_SPACING = .15  # spaces between horizontal lines
     horizontal_Lines = [] # list the lines horizontal
 
-    SPEED_y = .4 # ship's speed vertically (y)
+    SPEED_y = .8 # speed vertically (y)
     current_offset_y = 0 # current offset y
 
-    SPEED_x = 2.5 # ship's speed horizontally (x)
+    SPEED_x = 3.5 # speed horizontally (x)
     current_offset_x = 0 # current offset x
     current_speed_x = 0 # current speed x
 
@@ -46,11 +48,12 @@ class MainWidget(RelativeLayout):
 
     SHIP_WIDTH = .1 # width of the ship
     SHIP_HEIGHT = 0.035 # height of the ship
-    SHIP_BASE_Y = 0.04 # base y of the ship
+    SHIP_BASE_Y = 0.04 # position 1 y of the ship
     SHIP = None # The ship
     ships_coordinates = [(0, 0), (0, 0), (0, 0)] # The coordinates of the 3 corners of the ship
 
     state_game_over = False
+    state_game_has_started = False
 
 
     def __init__(self, **kwargs):
@@ -254,7 +257,7 @@ class MainWidget(RelativeLayout):
         # central_line_x = self.width / 2 
         # spacing = self.V_LINES_SPACING * self.width
         # offset = - int(self.V_NB_LINES / 2) + 0.5
-        start_index = - int(self.V_NB_LINES / 2) + 1 # here it is -3
+        start_index = - int(self.V_NB_LINES / 2) + 1 # here it is -3, if the V_NB_LINES is 8
         end_index = start_index + self.V_NB_LINES - 1 # here it is 4
 
         xmin =  self.get_line_x_from_index(start_index)
@@ -275,7 +278,7 @@ class MainWidget(RelativeLayout):
         self.update_tiles()
         self.update_ship()
 
-        if not self.state_game_over:
+        if not self.state_game_over and self.state_game_has_started:
             speed_y = self.SPEED_y * self.height / 100
             self.current_offset_y += speed_y * time_factor
         
@@ -290,8 +293,16 @@ class MainWidget(RelativeLayout):
 
         if not self.check_ship_collision() and not self.state_game_over:
             self.state_game_over = True
+            self.menu_widget.opacity = 1
             print("GAME OVER")
-     
+
+    def on_menu_button_pressed(self):
+        # print("button pressed")
+        self.state_game_has_started = True
+        self.menu_widget.opacity = 0
+
+
+
 class GalaxyApp(App):
     pass
 

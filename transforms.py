@@ -1,4 +1,4 @@
-# Allows you to switch between the two transformations
+# Allows you to switch between the two types of transformations
 def transform(self, x, y):
         # return self.transform_2D(x, y)
         return self.transform_perspective(x, y)
