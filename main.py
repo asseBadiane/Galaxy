@@ -13,9 +13,11 @@ from kivy.graphics.vertex_instructions import Line, Quad, Triangle
 from kivy.properties import Clock
 
 import random
+from kivy.lang.builder import Builder
+from kivy.uix.relativelayout import RelativeLayout
 
-
-class MainWidget(Widget):
+Builder.load_file("menu.kv")
+class MainWidget(RelativeLayout):
     from transforms import transform, transform_2D, transform_perspective
     from users_actions import keyboard_closed, on_keyboard_down, on_keyboard_up, on_touch_down, on_touch_up
     perspective_point_x = NumericProperty(0)
