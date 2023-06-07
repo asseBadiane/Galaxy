@@ -296,11 +296,24 @@ class MainWidget(RelativeLayout):
             self.menu_widget.opacity = 1
             print("GAME OVER")
 
+    # Button to start the game
     def on_menu_button_pressed(self):
         # print("button pressed")
+        self.reset_game()
         self.state_game_has_started = True
         self.menu_widget.opacity = 0
 
+    # Restarting game
+    def reset_game(self):
+        self.current_offset_y = 0 
+        self.SPEED_x = 3.5 
+        self.current_offset_x = 0 
+        self.current_speed_x = 0 
+        self.tiles_coordinates = []
+        self.current_y_loop = 0
+        self.pre_fill_tiles_coordinates()
+        self.generates_tiles_coordinates()
+        self.state_game_over = False
 
 
 class GalaxyApp(App):
