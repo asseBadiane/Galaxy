@@ -15,6 +15,7 @@ from kivy.properties import Clock
 import random
 from kivy.lang.builder import Builder
 from kivy.uix.relativelayout import RelativeLayout
+from kivy.core.audio import SoundLoader
 
 Builder.load_file("menu.kv")
 class MainWidget(RelativeLayout):
@@ -59,10 +60,18 @@ class MainWidget(RelativeLayout):
     menu_button_title = StringProperty("S T A R T")
 
     score_text = StringProperty()
+
+    sound_begin = None
+    sound_galaxy = None
+    sound_gameover_impact = None
+    sound_gameover_voice = None
+    sound_music1 = None
+    sound_restart = None
     
 
     def __init__(self, **kwargs):
         super(MainWidget, self).__init__(**kwargs)
+        self.init_audios()
 
         if self.is_desktop():
             self._keyboard = Window.request_keyboard(self.keyboard_closed, self)
@@ -76,6 +85,26 @@ class MainWidget(RelativeLayout):
         self.pre_fill_tiles_coordinates()
         self.generates_tiles_coordinates() 
         Clock.schedule_interval(self.update, 1.0/60.0)
+        
+        self.sound_galaxy.play()
+
+
+    # The audio
+    def init_audios(self):
+        self.sound_begin = SoundLoader.load("audio/begin.wav")
+        self.sound_galaxy = SoundLoader.load("audio/galaxy.wav")
+        self.sound_gameover_impact = SoundLoader.load("audio/gameover_impact.wav")
+        self.sound_gameover_voice = SoundLoader.load("audio/gameover_voice.wav")
+        self.sound_music1 = SoundLoader.load("audio/music1.wav")
+        self.sound_restart = SoundLoader.load("audio/restart.wav")
+
+        self.sound_begin.volume = 1
+        self.sound_galaxy.volume = .25
+        self.sound_gameover_impact.volume = .25
+        self.sound_gameover_voice.volume = .25
+        self.sound_music1.volume = .25
+        self.sound_restart.volume = 1
+    
 
     # Check if the device is a desktop
     def is_desktop(self):
@@ -302,15 +331,27 @@ class MainWidget(RelativeLayout):
             self.menu_widget.opacity = 1
             self.menu_title = "G  A  M  E   O V E R"
             self.menu_button_title = "RESTART"
+            self.sound_music1.stop()
+            self.sound_gameover_impact.play()
+            Clock.schedule_interval(self.play_voice_game_over, 2)
             # print("GAME OVER")
 
     # Button to start the game
     def on_menu_button_pressed(self):
         # print("button pressed")
+        if self.state_game_over:
+            self.sound_restart.play()
+        else:
+            self.sound_begin.play()
+        self.sound_music1.play()
         self.reset_game()
-        
+        self.sound_restart.play()
         self.state_game_has_started = True
         self.menu_widget.opacity = 0
+
+    def play_voice_game_over(self, dt):
+        if self.state_game_over:
+            self.sound_gameover_voice.play()
 
     # Restarting game
     def reset_game(self):
